@@ -2,6 +2,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 --// Variables del jugador
 local player = Players.LocalPlayer
@@ -19,10 +20,7 @@ local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 220, 0, 160)
 frame.Position = UDim2.new(0.5, -110, 0.2, 0)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-frame.BackgroundTransparency = 0
 frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
 frame.Parent = screenGui
 
 -- Bordes redondeados
@@ -41,6 +39,50 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 16
 title.Parent = frame
 
+-- Función para arrastrar el frame
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or
+       input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or
+       input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        updateDrag(input)
+    end
+end)
+
 --// Función para crear toggles
 local function createToggle(name, posY, callback)
     local container = Instance.new("Frame")
@@ -52,7 +94,6 @@ local function createToggle(name, posY, callback)
 
     local text = Instance.new("TextLabel")
     text.Size = UDim2.new(0.7, 0, 1, 0)
-    text.Position = UDim2.new(0, 0, 0, 0)
     text.BackgroundTransparency = 1
     text.Text = name
     text.TextColor3 = Color3.new(1, 1, 1)
@@ -82,7 +123,6 @@ local function createToggle(name, posY, callback)
     btnCorner.CornerRadius = UDim.new(1, 0)
 
     local on = false
-
     toggleBtn.MouseButton1Click:Connect(function()
         on = not on
         local tween = TweenService:Create(
@@ -96,7 +136,7 @@ local function createToggle(name, posY, callback)
 end
 
 --// Toggle: Speed Boost
-createToggle("Speed Boost", 35, function(enabled)
+createToggle("Speed boost", 35, function(enabled)
     local char = player.Character or player.CharacterAdded:Wait()
     local hum = char:FindFirstChildOfClass("Humanoid")
     if hum then
@@ -106,7 +146,7 @@ end)
 
 --// Toggle: Save Position
 -- No es realmente un toggle, guarda la posición actual al activarse
-createToggle("Save Position", 70, function(_)
+createToggle("Guardar posicion", 70, function(_)
     local char = player.Character or player.CharacterAdded:Wait()
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if hrp then
@@ -115,7 +155,7 @@ createToggle("Save Position", 70, function(_)
 end)
 
 --// Toggle: Steal
-createToggle("Steal", 105, function(_)
+createToggle("Robar", 105, function(_)
     if not savedPosition then return end
 
     local char = player.Character or player.CharacterAdded:Wait()
@@ -131,9 +171,9 @@ createToggle("Steal", 105, function(_)
 
     -- Anclar y elevar al jugador
     hrp.Anchored = true
-    local floatPos = hrp.Position + Vector3.new(0, 5, 0)
+    local floatPos = hrp.Position + Vector3.new(0, 15, 0)
     hrp.CFrame = CFrame.new(floatPos)
-    wait(1.6)
+    wait(0.6)
 
     -- Mover lentamente hacia la posición guardada
     local connection
