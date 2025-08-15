@@ -131,9 +131,9 @@ createToggle("Steal", 105, function(_)
 
     -- Anclar y elevar al jugador
     hrp.Anchored = true
-    local floatPos = hrp.Position + Vector3.new(0, 15, 0)
+    local floatPos = hrp.Position + Vector3.new(0, 5, 0)
     hrp.CFrame = CFrame.new(floatPos)
-    wait(0.6)
+    wait(1.6)
 
     -- Mover lentamente hacia la posición guardada
     local connection
