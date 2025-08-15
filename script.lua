@@ -169,7 +169,7 @@ createToggle("Robar", 105, function(_)
         end
     end
 
-    hrp.Anchored = true
+    hrp.Anchored = false
     local floatPos = hrp.Position + Vector3.new(0, 0.1, 0)
     hrp.CFrame = CFrame.new(floatPos)
     wait(0.6)
@@ -192,3 +192,4 @@ createToggle("Robar", 105, function(_)
         end
     end)
 end)
+
