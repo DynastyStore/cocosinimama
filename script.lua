@@ -154,66 +154,29 @@ createToggle("Guardar posicion", 70, function(_)
     end
 end)
 
-local function snapToGround(hrp)
-    local rayOrigin = hrp.Position
-    local rayDirection = Vector3.new(0, -50, 0) -- Hacia abajo
-
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = { player.Character } -- Evitar golpear tu propio personaje
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-
-    local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
-
-    if result then
-        local hitPosition = result.Position
-        -- Ajusta para que el HumanoidRootPart quede un poco por encima del suelo
-        hrp.CFrame = CFrame.new(hitPosition + Vector3.new(0, 3, 0))
-    end
-end
-
 createToggle("Robar", 105, function(_)
     if not savedPosition then return end
 
     local char = player.Character or player.CharacterAdded:Wait()
+    local hum = char:FindFirstChildOfClass("Humanoid")
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+    if not hum or not hrp then return end
 
-    -- Anclar para empezar a flotar
-    hrp.Anchored = true
-    local floatPos = hrp.Position + Vector3.new(0, 0.5, 0)
-    hrp.CFrame = CFrame.new(floatPos)
-    wait(0.6)
+    -- Guardamos la velocidad original
+    local originalSpeed = hum.WalkSpeed
+    hum.WalkSpeed = 100 -- aumentá este número según quieras
 
-    -- Función para ajustar al suelo
-    local function snapToGround(hrpPart)
-        local rayOrigin = hrpPart.Position
-        local rayDirection = Vector3.new(0, -50, 0)
-
-        local raycastParams = RaycastParams.new()
-        raycastParams.FilterDescendantsInstances = {char}
-        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-
-        local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
-
-        if result then
-            local hitPos = result.Position
-            hrpPart.CFrame = CFrame.new(hitPos + Vector3.new(0, 3, 0))
-        end
-    end
-
-    -- Mover lentamente hacia la posición guardada
+    -- Hacemos que camine hacia la posición guardada
+    local reached = false
     local connection
-    local speed = 1 -- studs por frame (ajustable)
     connection = RunService.RenderStepped:Connect(function()
-        local dir = (savedPosition - hrp.Position)
+        local dir = savedPosition - hrp.Position
         if dir.Magnitude < 2 then
             connection:Disconnect()
-            wait(0.2)
-            snapToGround(hrp) -- Ajustar personaje al suelo
-            hrp.Anchored = false
+            reached = true
+            hum.WalkSpeed = originalSpeed
         else
-            local move = dir.Unit * math.min(speed, dir.Magnitude)
-            hrp.CFrame = hrp.CFrame + move
+            hum:Move(Vector3.new(dir.X, 0, dir.Z).Unit) -- solo movimiento horizontal
         end
     end)
 end)
