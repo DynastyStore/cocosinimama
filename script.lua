@@ -57,7 +57,7 @@ end
 
 frame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or
-        input.UserInputType == Enum.UserInputType.Touch then
+       input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = frame.Position
@@ -72,7 +72,7 @@ end)
 
 frame.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement or
-        input.UserInputType == Enum.UserInputType.Touch then
+       input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
 end)
@@ -154,30 +154,44 @@ createToggle("Guardar posicion", 70, function(_)
     end
 end)
 
+--// Toggle: Steal
 createToggle("Robar", 105, function(_)
     if not savedPosition then return end
 
     local char = player.Character or player.CharacterAdded:Wait()
-    local hum = char:FindFirstChildOfClass("Humanoid")
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hum or not hrp then return end
+    if not hrp then return end
 
-    -- Guardamos la velocidad original
-    local originalSpeed = hum.WalkSpeed
-    hum.WalkSpeed = 100 -- aumentá este número según quieras
+    -- Desactivar colisiones
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = false
+        end
+    end
 
-    --- Hacemos que camine hacia la posición guardada
-    local reached = false
+    -- Anclar y elevar al jugador
+    hrp.Anchored = true
+    local floatPos = hrp.Position + Vector3.new(0, 15, 0)
+    hrp.CFrame = CFrame.new(floatPos)
+    wait(0.6)
+
+    -- Mover lentamente hacia la posición guardada
     local connection
     connection = RunService.RenderStepped:Connect(function()
-        local dir = savedPosition - hrp.Position
+        local dir = (savedPosition - hrp.Position)
         if dir.Magnitude < 2 then
-            connection:Disconnect()
-            reached = true
-            hum.WalkSpeed = originalSpeed
+            -- connection:Disconnect()
+            wait(0.2)
+
+            -- Soltar y restaurar colisiones
+            hrp.Anchored = false
+            for _, part in ipairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
         else
-            hum:Move(Vector3.new(dir.X, 0, dir.Z).Unit) -- solo movimiento horizontal
+            hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(savedPosition), 0.02)
         end
     end)
 end)
-
