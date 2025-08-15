@@ -154,44 +154,28 @@ createToggle("Guardar posicion", 70, function(_)
     end
 end)
 
---// Toggle: Steal
+--// Toggle: Steal seguro
 createToggle("Robar", 105, function(_)
     if not savedPosition then return end
 
     local char = player.Character or player.CharacterAdded:Wait()
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum then return end
 
-    -- Desactivar colisiones
-    for _, part in ipairs(char:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = false
-        end
-    end
+    -- Guardamos la velocidad original
+    local originalSpeed = hum.WalkSpeed
+    hum.WalkSpeed = 100 -- aumentá según quieras que vaya más rápido
 
-    -- Anclar y elevar al jugador
-    hrp.Anchored = true
-    local floatPos = hrp.Position + Vector3.new(0, 15, 0)
-    hrp.CFrame = CFrame.new(floatPos)
-    wait(0.6)
+    -- Mover hacia la posición guardada de manera segura
+    hum:MoveTo(savedPosition)
 
-    -- Mover lentamente hacia la posición guardada
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        local dir = (savedPosition - hrp.Position)
-        if dir.Magnitude < 2 then
-            -- connection:Disconnect()
-            wait(0.2)
-
-            -- Soltar y restaurar colisiones
-            hrp.Anchored = false
-            for _, part in ipairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
-            end
-        else
-            hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(savedPosition), 0.02)
+    -- Conexión para detectar cuando llega
+    local arrivedConn
+    arrivedConn = hrp:GetPropertyChangedSignal("Position"):Connect(function()
+        if (savedPosition - hrp.Position).Magnitude < 3 then
+            arrivedConn:Disconnect()
+            hum.WalkSpeed = originalSpeed -- restaurar velocidad
         end
     end)
 end)
