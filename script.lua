@@ -166,7 +166,7 @@ createToggle("Robar", 105, function(_)
     local originalSpeed = hum.WalkSpeed
     hum.WalkSpeed = 100 -- aumentá este número según quieras
 
-    -- Hacemos que camine hacia la posición guardada
+    --- Hacemos que camine hacia la posición guardada
     local reached = false
     local connection
     connection = RunService.RenderStepped:Connect(function()
@@ -180,3 +180,4 @@ createToggle("Robar", 105, function(_)
         end
     end)
 end)
+
