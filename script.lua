@@ -162,15 +162,15 @@ createToggle("Robar", 105, function(_)
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
-    -- Desactivar colisiones
-    for _, part in ipairs(char:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = false
-        end
-    end
+    -- -- Desactivar colisiones
+    -- for _, part in ipairs(char:GetDescendants()) do
+    --     if part:IsA("BasePart") then
+    --         part.CanCollide = false
+    --     end
+    -- end
 
-    hrp.Anchored = false
-    local floatPos = hrp.Position + Vector3.new(0, 0.1, 0)
+    hrp.Anchored = true
+    local floatPos = hrp.Position + Vector3.new(0, 0.5, 0)
     hrp.CFrame = CFrame.new(floatPos)
     wait(0.6)
 
@@ -178,18 +178,17 @@ createToggle("Robar", 105, function(_)
     connection = RunService.RenderStepped:Connect(function()
         local dir = (savedPosition - hrp.Position)
         if dir.Magnitude < 2 then
-            -- connection:Disconnect()
+            connection:Disconnect()
             wait(0.2)
 
             hrp.Anchored = false
-            for _, part in ipairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
-            end
+            -- for _, part in ipairs(char:GetDescendants()) do
+            --     if part:IsA("BasePart") then
+            --         part.CanCollide = true
+            --     end
+            -- end
         else
             hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(savedPosition), 0.02)
         end
     end)
 end)
-
