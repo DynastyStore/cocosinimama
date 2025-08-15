@@ -171,7 +171,6 @@ local function snapToGround(hrp)
     end
 end
 
---// Toggle: Steal
 createToggle("Robar", 105, function(_)
     if not savedPosition then return end
 
@@ -179,19 +178,32 @@ createToggle("Robar", 105, function(_)
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
-    -- -- Desactivar colisiones
-    -- for _, part in ipairs(char:GetDescendants()) do
-    --     if part:IsA("BasePart") then
-    --         part.CanCollide = false
-    --     end
-    -- end
-
+    -- Anclar para empezar a flotar
     hrp.Anchored = true
     local floatPos = hrp.Position + Vector3.new(0, 0.5, 0)
     hrp.CFrame = CFrame.new(floatPos)
     wait(0.6)
 
+    -- Función para ajustar al suelo
+    local function snapToGround(hrpPart)
+        local rayOrigin = hrpPart.Position
+        local rayDirection = Vector3.new(0, -50, 0)
+
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = {char}
+        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+        local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+
+        if result then
+            local hitPos = result.Position
+            hrpPart.CFrame = CFrame.new(hitPos + Vector3.new(0, 3, 0))
+        end
+    end
+
+    -- Mover lentamente hacia la posición guardada
     local connection
+    local speed = 1 -- studs por frame (ajustable)
     connection = RunService.RenderStepped:Connect(function()
         local dir = (savedPosition - hrp.Position)
         if dir.Magnitude < 2 then
@@ -199,13 +211,9 @@ createToggle("Robar", 105, function(_)
             wait(0.2)
             snapToGround(hrp) -- Ajustar personaje al suelo
             hrp.Anchored = false
-            -- for _, part in ipairs(char:GetDescendants()) do
-            --     if part:IsA("BasePart") then
-            --         part.CanCollide = true
-            --     end
-            -- end
         else
-            hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(savedPosition), 0.02)
+            local move = dir.Unit * math.min(speed, dir.Magnitude)
+            hrp.CFrame = hrp.CFrame + move
         end
     end)
 end)
