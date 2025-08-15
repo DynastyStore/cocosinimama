@@ -35,7 +35,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0.2, 0)
 title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "🧠 GG HUB - Steal Mode"
+title.Text = "Cocosini Mama.COM"
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 16
@@ -140,7 +140,7 @@ createToggle("Steal", 105, function(_)
     connection = RunService.RenderStepped:Connect(function()
         local dir = (savedPosition - hrp.Position)
         if dir.Magnitude < 2 then
-            connection:Disconnect()
+            -- connection:Disconnect()
             wait(0.2)
 
             -- Soltar y restaurar colisiones
