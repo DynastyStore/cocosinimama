@@ -57,7 +57,7 @@ end
 
 frame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or
-       input.UserInputType == Enum.UserInputType.Touch then
+        input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = frame.Position
@@ -72,7 +72,7 @@ end)
 
 frame.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement or
-       input.UserInputType == Enum.UserInputType.Touch then
+        input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
 end)
@@ -154,6 +154,23 @@ createToggle("Guardar posicion", 70, function(_)
     end
 end)
 
+local function snapToGround(hrp)
+    local rayOrigin = hrp.Position
+    local rayDirection = Vector3.new(0, -50, 0) -- Hacia abajo
+
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = { player.Character } -- Evitar golpear tu propio personaje
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+    local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+
+    if result then
+        local hitPosition = result.Position
+        -- Ajusta para que el HumanoidRootPart quede un poco por encima del suelo
+        hrp.CFrame = CFrame.new(hitPosition + Vector3.new(0, 3, 0))
+    end
+end
+
 --// Toggle: Steal
 createToggle("Robar", 105, function(_)
     if not savedPosition then return end
@@ -180,7 +197,7 @@ createToggle("Robar", 105, function(_)
         if dir.Magnitude < 2 then
             connection:Disconnect()
             wait(0.2)
-
+            snapToGround(hrp) -- Ajustar personaje al suelo
             hrp.Anchored = false
             -- for _, part in ipairs(char:GetDescendants()) do
             --     if part:IsA("BasePart") then
