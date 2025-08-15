@@ -169,13 +169,11 @@ createToggle("Robar", 105, function(_)
         end
     end
 
-    -- Anclar y elevar al jugador
     hrp.Anchored = true
-    local floatPos = hrp.Position + Vector3.new(0, 15, 0)
+    local floatPos = hrp.Position + Vector3.new(0, 0.1, 0)
     hrp.CFrame = CFrame.new(floatPos)
     wait(0.6)
 
-    -- Mover lentamente hacia la posición guardada
     local connection
     connection = RunService.RenderStepped:Connect(function()
         local dir = (savedPosition - hrp.Position)
@@ -183,7 +181,6 @@ createToggle("Robar", 105, function(_)
             -- connection:Disconnect()
             wait(0.2)
 
-            -- Soltar y restaurar colisiones
             hrp.Anchored = false
             for _, part in ipairs(char:GetDescendants()) do
                 if part:IsA("BasePart") then
