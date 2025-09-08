@@ -1,84 +1,65 @@
--- LocalScript: Sprint cámara-relativo para TU experiencia (no para explotar otras)
 local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
-local function waitForCharacter(plr)
-    local ch = plr.Character or plr.CharacterAdded:Wait()
-    ch:WaitForChild("Humanoid")
-    ch:WaitForChild("HumanoidRootPart")
-    return ch
-end
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
 
-local character = waitForCharacter(player)
-local humanoid = character:FindFirstChildOfClass("Humanoid")
+local SPEED = 0
+local holding = false
 
--- Parámetros
-local BASE_SPEED = 16             -- WalkSpeed base típico
-local SPRINT_MULT = 1.7           -- multiplicador de sprint
-local isSprinting = false
-
--- Estado de inputs
-local inputW, inputA, inputS, inputD = false, false, false, false
-
-local function updateSprint(state)
-    isSprinting = state
-    humanoid.WalkSpeed = BASE_SPEED * (isSprinting and SPRINT_MULT or 1)
-end
-
-UIS.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.LeftShift then updateSprint(true) end
-    if input.KeyCode == Enum.KeyCode.W then inputW = true end
-    if input.KeyCode == Enum.KeyCode.A then inputA = true end
-    if input.KeyCode == Enum.KeyCode.S then inputS = true end
-    if input.KeyCode == Enum.KeyCode.D then inputD = true end
-end)
-
-UIS.InputEnded:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.LeftShift then updateSprint(false) end
-    if input.KeyCode == Enum.KeyCode.W then inputW = false end
-    if input.KeyCode == Enum.KeyCode.A then inputA = false end
-    if input.KeyCode == Enum.KeyCode.S then inputS = false end
-    if input.KeyCode == Enum.KeyCode.D then inputD = false end
-end)
-
--- Movimiento cámara-relativo, corrige W/S invertidas
-RunService.RenderStepped:Connect(function()
-    if not character or not character.Parent then
-        character = waitForCharacter(player)
-        humanoid = character:FindFirstChildOfClass("Humanoid")
-        updateSprint(false)
-        return
-    end
-
-    local cam = workspace.CurrentCamera
-    local look = cam.CFrame.LookVector
-    local right = cam.CFrame.RightVector
-
-    -- proyectar en plano XZ para evitar y (vertical)
-    look = Vector3.new(look.X, 0, look.Z).Unit
-    right = Vector3.new(right.X, 0, right.Z).Unit
-
-    local moveVec = Vector3.zero
-    if inputW then moveVec += look end        -- W hacia adelante (no invertido)
-    if inputS then moveVec -= look end        -- S hacia atrás
-    if inputA then moveVec -= right end
-    if inputD then moveVec += right end
-
-    if moveVec.Magnitude > 0 then
-        moveVec = moveVec.Unit
-        humanoid:Move(moveVec, false)
-    else
-        humanoid:Move(Vector3.zero, false)
+-- Keybind
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftShift then
+        holding = true
     end
 end)
 
--- Por si el personaje respawnea
-player.CharacterAdded:Connect(function(ch)
-    character = ch
-    humanoid = character:WaitForChild("Humanoid")
-    updateSprint(false)
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftShift then
+        holding = false
+        if hrp then
+            hrp.AssemblyLinearVelocity = Vector3.zero
+        end
+    end
+end)
+
+-- Movimiento con fuerza realista
+RunService.RenderStepped:Connect(function(dt)
+    if holding and hrp then
+        local moveDirection = Vector3.zero
+
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection += Vector3.new(0, 0, 1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection += Vector3.new(0, 0, -1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection += Vector3.new(-1, 0, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection += Vector3.new(1, 0, 0) end
+
+        if moveDirection.Magnitude > 0 then
+            moveDirection = moveDirection.Unit
+            local camCF = workspace.CurrentCamera.CFrame
+            local moveWorld = (camCF.RightVector * moveDirection.X + camCF.LookVector * moveDirection.Z).Unit
+            hrp.AssemblyLinearVelocity = moveWorld * SPEED
+        else
+            hrp.AssemblyLinearVelocity = Vector3.zero
+        end
+    end
+end)
+
+-- GUI para ajustar velocidad
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.ResetOnSpawn = false
+
+local slider = Instance.new("TextButton", gui)
+slider.Size = UDim2.new(0, 200, 0, 40)
+slider.Position = UDim2.new(0, 20, 0, 100)
+slider.Text = "Velocidad: 0"
+slider.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+slider.TextColor3 = Color3.new(1, 1, 1)
+slider.Font = Enum.Font.SourceSans
+slider.TextSize = 16
+
+slider.MouseButton1Click:Connect(function()
+    SPEED = (SPEED + 10) % 150
+    slider.Text = "Velocidad: " .. SPEED
 end)
