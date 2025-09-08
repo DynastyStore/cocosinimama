@@ -1,93 +1,58 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
-local hum = char:FindFirstChildOfClass("Humanoid")
+local mouse = player:GetMouse()
 
--- Crear GUI de salida
-local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-local textLabel = Instance.new("TextLabel", screenGui)
-textLabel.Size = UDim2.new(0.3, 0, 0.3, 0)
-textLabel.Position = UDim2.new(0, 10, 0, 10)
-textLabel.BackgroundTransparency = 0.5
-textLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-textLabel.TextXAlignment = Enum.TextXAlignment.Left
-textLabel.TextYAlignment = Enum.TextYAlignment.Top
-textLabel.TextWrapped = true
+-- Estado
+local SPEED = 0
+local holding = false
 
-RunService.RenderStepped:Connect(function()
-    if hrp and hum then
-        local info = ""
-        info ..= "Posición: " .. tostring(hrp.Position) .. "\n"
-        info ..= "WalkSpeed: " .. tostring(hum.WalkSpeed) .. "\n"
+-- GUI
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.ResetOnSpawn = false
 
-        -- Partes cercanas
-        for _, part in ipairs(workspace:GetDescendants()) do
-            if part:IsA("BasePart") and (part.Position - hrp.Position).Magnitude < 10 then
-                info ..= "Cerca de: " .. part.Name .. " Dist: " .. math.floor((part.Position - hrp.Position).Magnitude) .. "\n"
-            end
-        end
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 300, 0, 80)
+frame.Position = UDim2.new(0, 20, 0, 20)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.BorderSizePixel = 0
 
-        textLabel.Text = info
-    end
-end)
+local label = Instance.new("TextLabel", frame)
+label.Size = UDim2.new(1, -10, 0.4, 0)
+label.Position = UDim2.new(0, 5, 0, 5)
+label.BackgroundTransparency = 1
+label.TextColor3 = Color3.new(1, 1, 1)
+label.Text = "Velocidad: 0"
+label.Font = Enum.Font.SourceSansBold
+label.TextSize = 18
+label.TextXAlignment = Enum.TextXAlignment.Left
 
--- Crear Slider para velocidad
-local sliderContainer = Instance.new("Frame")
-sliderContainer.Size = UDim2.new(1, -20, 0, 40)
-sliderContainer.Position = UDim2.new(0, 10, 0, 150)
-sliderContainer.BackgroundTransparency = 1
-sliderContainer.Parent = frame
+local bar = Instance.new("Frame", frame)
+bar.Size = UDim2.new(1, -20, 0.3, 0)
+bar.Position = UDim2.new(0, 10, 0.6, 0)
+bar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 
-local sliderLabel = Instance.new("TextLabel")
-sliderLabel.Size = UDim2.new(0.7, 0, 1, 0)
-sliderLabel.Position = UDim2.new(0, 0, 0, 0)
-sliderLabel.BackgroundTransparency = 1
-sliderLabel.Text = "Velocidad: 34"
-sliderLabel.TextColor3 = Color3.new(1,1,1)
-sliderLabel.Font = Enum.Font.Gotham
-sliderLabel.TextSize = 14
-sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
-sliderLabel.Parent = sliderContainer
+local knob = Instance.new("Frame", bar)
+knob.Size = UDim2.new(0, 20, 1, 0)
+knob.Position = UDim2.new(0, 0, 0, 0)
+knob.BackgroundColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
 
-local sliderBar = Instance.new("Frame")
-sliderBar.Size = UDim2.new(0.25, 0, 0.4, 0)
-sliderBar.Position = UDim2.new(0.75, 0, 0.3, 0)
-sliderBar.BackgroundColor3 = Color3.fromRGB(80,80,80)
-sliderBar.Parent = sliderContainer
-
-local knob = Instance.new("Frame")
-knob.Size = UDim2.new(0.4,0,1,0)
-knob.Position = UDim2.new(0,0,0,0)
-knob.BackgroundColor3 = Color3.new(1,1,1)
-knob.Parent = sliderBar
-local knobCorner = Instance.new("UICorner", knob)
-knobCorner.CornerRadius = UDim.new(1,0)
-
--- Función para actualizar velocidad
+-- Dragging
 local dragging = false
-local dragInput
-local dragStart
-local knobStart
-
-local function updateSpeed(input)
-    local delta = input.Position.X - dragStart.X
-    local newPos = math.clamp(knobStart.X.Offset + delta, 0, sliderBar.AbsoluteSize.X - knob.AbsoluteSize.X)
-    knob.Position = UDim2.new(0, newPos, 0, 0)
-    local speed = 18 + (newPos / (sliderBar.AbsoluteSize.X - knob.AbsoluteSize.X)) * 50 -- rango 18-68
-    sliderLabel.Text = "Velocidad: "..math.floor(speed)
-    local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-    if hum then hum.WalkSpeed = speed end
-end
+local dragStart = nil
+local knobStart = nil
 
 knob.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
         knobStart = knob.Position
+
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
@@ -98,6 +63,44 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        updateSpeed(input)
+        local delta = input.Position.X - dragStart.X
+        local newX = math.clamp(knobStart.X.Offset + delta, 0, bar.AbsoluteSize.X - knob.AbsoluteSize.X)
+        knob.Position = UDim2.new(0, newX, 0, 0)
+
+        local ratio = newX / (bar.AbsoluteSize.X - knob.AbsoluteSize.X)
+        SPEED = math.floor(20 + ratio * 100) -- rango 20–120
+        label.Text = "Velocidad: " .. SPEED
+    end
+end)
+
+-- Input hold key to activate
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftShift then
+        holding = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftShift then
+        holding = false
+    end
+end)
+
+-- Movimiento CFrame (indetectable)
+RunService.RenderStepped:Connect(function(dt)
+    if holding and player.Character and hrp then
+        local moveDirection = Vector3.zero
+
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection += Vector3.new(0, 0, -1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection += Vector3.new(0, 0, 1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection += Vector3.new(-1, 0, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection += Vector3.new(1, 0, 0) end
+
+        if moveDirection.Magnitude > 0 then
+            moveDirection = moveDirection.Unit
+            local camCF = workspace.CurrentCamera.CFrame
+            local moveWorld = (camCF.RightVector * moveDirection.X + camCF.LookVector * moveDirection.Z)
+            hrp.CFrame = hrp.CFrame + (moveWorld.Unit * SPEED * dt)
+        end
     end
 end)
