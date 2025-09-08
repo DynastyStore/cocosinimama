@@ -1,4 +1,4 @@
-local Players = game:GetService("Players")
+local Players = game:GetService("Players") -- chimpanzini gaganiniiii 123
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local PhysicsService = game:GetService("PhysicsService")
@@ -90,3 +90,4 @@ toggle.MouseButton1Click:Connect(function()
 		setNoCollision()
 	end
 end)
+
