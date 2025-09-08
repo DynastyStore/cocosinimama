@@ -1,4 +1,4 @@
-local Players = game:GetService("Players")
+local Players = game:GetService("Players") -- asdasd 
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -63,3 +63,4 @@ slider.MouseButton1Click:Connect(function()
     SPEED = (SPEED + 10) % 150
     slider.Text = "Velocidad: " .. SPEED
 end)
+
