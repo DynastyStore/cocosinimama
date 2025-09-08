@@ -1,7 +1,7 @@
-local Players = game:GetService("Players") -- chimpanzini gaganiniiii 123
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local PhysicsService = game:GetService("PhysicsService")
+-- local PhysicsService = game:GetService("PhysicsService")
 
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
@@ -11,26 +11,26 @@ local SPEED = 50
 local holding = false
 
 -- Asignar personaje a capa sin colisiones
-local function setNoCollision()
-	for _, part in ipairs(char:GetDescendants()) do
-		if part:IsA("BasePart") then
-			PhysicsService:SetPartCollisionGroup(part, "NoCollide")
-		end
-	end
-end
+-- local function setNoCollision()
+-- 	for _, part in ipairs(char:GetDescendants()) do
+-- 		if part:IsA("BasePart") then
+-- 			PhysicsService:SetPartCollisionGroup(part, "NoCollide")
+-- 		end
+-- 	end
+-- end
 
 -- Crear CollisionGroup si no existe
-pcall(function()
-	PhysicsService:CreateCollisionGroup("NoCollide")
-end)
-PhysicsService:CollisionGroupSetCollidable("NoCollide", "Default", false)
-PhysicsService:CollisionGroupSetCollidable("NoCollide", "NoCollide", false)
+-- pcall(function()
+-- 	PhysicsService:CreateCollisionGroup("NoCollide")
+-- end)
+-- PhysicsService:CollisionGroupSetCollidable("NoCollide", "Default", false)
+-- PhysicsService:CollisionGroupSetCollidable("NoCollide", "NoCollide", false)
 
 -- Toggle activado
 UserInputService.InputBegan:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.LeftShift then
 		holding = true
-		setNoCollision()
+		-- setNoCollision()
 	end
 end)
 
@@ -87,7 +87,6 @@ toggle.MouseButton1Click:Connect(function()
 		hrp.AssemblyLinearVelocity = Vector3.zero
 	end
 	if holding then
-		setNoCollision()
+		-- setNoCollision()
 	end
 end)
-
