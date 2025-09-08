@@ -1,13 +1,13 @@
-local Players = game:GetService("Players")
+local Players = game:GetService("Players") -- asdasd gagagaagagaga
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local PhysicsService = game:GetService("PhysicsService")
 
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
+local PhysicsService = game:GetService("PhysicsService")
 
-local SPEED = 50
+local SPEED = 0
 local holding = false
 
 -- Asignar personaje a capa sin colisiones
@@ -26,21 +26,21 @@ end)
 PhysicsService:CollisionGroupSetCollidable("NoCollide", "Default", false)
 PhysicsService:CollisionGroupSetCollidable("NoCollide", "NoCollide", false)
 
--- Toggle activado
+-- Keybind
 UserInputService.InputBegan:Connect(function(input)
-	if input.KeyCode == Enum.KeyCode.LeftShift then
-		holding = true
-		setNoCollision()
-	end
+    if input.KeyCode == Enum.KeyCode.LeftShift then
+        holding = true
+        setNoCollision()
+    end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
-	if input.KeyCode == Enum.KeyCode.LeftShift then
-		holding = false
-		if hrp then
-			hrp.AssemblyLinearVelocity = Vector3.zero
-		end
-	end
+    if input.KeyCode == Enum.KeyCode.LeftShift then
+        holding = false
+        if hrp then
+            hrp.AssemblyLinearVelocity = Vector3.zero
+        end
+    end
 end)
 
 -- Movimiento
@@ -63,7 +63,9 @@ RunService.RenderStepped:Connect(function()
 			hrp.AssemblyLinearVelocity = Vector3.zero
 		end
 	end
+
 end)
+
 
 -- GUI toggle
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
